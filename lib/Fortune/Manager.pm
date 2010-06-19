@@ -1,15 +1,21 @@
 package Fortune::Manager;
 
-use warnings;
+#use warnings;
 use strict;
+#use diagnostics ;
 
 =head1 NAME
 
-Fortune::Manager - The great new Fortune::Manager!
+Fortune::Manager - easily manage your own fortunes file(s)
 
 =head1 VERSION
 
-Version 0.01
+Version 0.01 - 19/06/2010
+    
+This application is born after I got bored at manually adding fortunes
+to my own collection of fortunes.
+
+So i decided to create my own application to add fortunes
 
 =cut
 
@@ -18,39 +24,51 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+Fortune::Manager manages fortune files, easily, automagically.
 
-Perhaps a little code snippet.
+Perhaps a little code snippet may make its usage more clear:
 
-    use Fortune::Manager;
+    manu@joker:~$ fortune-manager 
+    [$EDITOR is launched to type the quote]
+    adding fortune to your fortunes file...
+    manu@joker:~$ 
 
-    my $foo = Fortune::Manager->new();
-    ...
+Simple, neh ?
 
-=head1 EXPORT
+But it can be more complex, since Fortune::Manager is designed to
+handle more than one fortune file.
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+    manu@joker:~$ fortune-manager fortunes-manu-it
+    #add the fortune to the fortune-manu-it fortune file
+    
+The configuration file is a simple plaintext file in ~, and precisely:
+~/.fortune-manager. Maybe in next version it will handle more than one
+configuration file.
+
+=head1 Configuration file syntax
+
+As I alredy pointed, the configuration file is a simple plaintext file
+in your home, and precisely ~/.fortune-manager
+
+The syntax is pretty simple: each line contains the full path of the
+fortune file at the beginning, and other words on the same line are
+considered symbolic names (aliases) for the fortune file.
+
+More than one aliases is allowed, but only one is recommended.
+
+At least ONE alias is REQUIRED.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+This module doesn't export any function/method at the time, but I'll
+probably extend it for the module to be used in bach-mode.
 
 =cut
 
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
-Emanuele Santoro, C<< <santoro at autistici.org> >>
+Emanuele Santoro, <santoro at autistici.org>
 
 =head1 BUGS
 
@@ -131,5 +149,69 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 =cut
+
+use feature 'say' ;
+use File::Temp ;
+
+our $RCFILE="$ENV{HOME}/.fortune-manager" ;
+
+## get the fortune name or exit showing some help
+my $fortune = shift @ARGV ;
+
+unless ($fortune) {
+    say "usage: $0 [fortune-file-name]" ; 
+    exit 2 ;
+}
+
+
+## load settings from ~/.fortune-manager
+
+#my $home = `echo \$HOME` ;
+#chdir $home ;
+
+unless (open SETTINGS, "< $RCFILE") {
+    say STDERR "could not read settings file\nReason: $!" ;
+    exit 2;
+}
+
+my @lines = <SETTINGS> ;
+
+my %database = ();
+
+foreach my $line (@lines) {
+    my @contents = split /\s/, $line ;
+    my $fullpath = shift @contents ;
+    my @aliases = @contents ;
+
+    unless (@aliases) {
+	say STDERR "Warning: $RCFILE contains a fortune file withoutany alias" ;
+	exit 2 ;
+    }
+
+    foreach my $alias (@aliases) {
+	$database{$alias} = $fullpath ;
+    }
+}
+
+
+#use Data::Dumper ; 
+#say Dumper %database ;
+
+#now check if there's a fortune with the name specified by the command line:
+unless (exists $database{$fortune} ) {
+    say STDERR "There's no fortune file aliased as $fortune in the config file, sorry," ;
+    exit 2 ;
+}
+
+## read the new fortune to a temporary file
+my $tmpfh = File::Temp->new(SUFFIX=>".tmp") ;
+system join " ", ($ENV{EDITOR},$tmpfh->filename) ;
+
+my $fortune_text = do {local $/; <$tmpfh>} ;
+
+open STRFILE, ">> $database{$fortune}" or die $! ;
+
+say STRFILE "\n%\n" ;
+print STRFILE $fortune_text ;
 
 1; # End of Fortune::Manager
