@@ -1,9 +1,5 @@
 package Fortune::Manager;
 
-#use warnings;
-use strict;
-#use diagnostics ;
-
 =head1 NAME
 
 Fortune::Manager - easily manage your own fortunes file(s)
@@ -28,8 +24,7 @@ Fortune::Manager manages fortune files, easily, automagically.
 
 Perhaps a little code snippet may make its usage more clear:
 
-    manu@joker:~$ fortune-manager 
-    [$EDITOR is launched to type the quote]
+    manu@joker:~$ fortune-manager manu-it
     adding fortune to your fortunes file...
     manu@joker:~$ 
 
@@ -38,7 +33,7 @@ Simple, neh ?
 But it can be more complex, since Fortune::Manager is designed to
 handle more than one fortune file.
 
-    manu@joker:~$ fortune-manager fortunes-manu-it
+    manu@joker:~$ fortune-manager salug
     #add the fortune to the fortune-manu-it fortune file
     
 The configuration file is a simple plaintext file in ~, and precisely:
@@ -54,9 +49,31 @@ The syntax is pretty simple: each line contains the full path of the
 fortune file at the beginning, and other words on the same line are
 considered symbolic names (aliases) for the fortune file.
 
-More than one aliases is allowed, but only one is recommended.
+More than one aliases is allowed, but only one is recommended (also,
+only the first alias is considered at the moment).
 
 At least ONE alias is REQUIRED.
+
+=head2 Configuration file example
+
+This is my own configuration file. I have my own fortune file, in
+which I store fortunes from about all over the Net, and the "salug"
+fortune file, in which i store fortunes about the SaLUG! (SAlento
+Linux User Group), since I'm the mantainer.
+
+My ~/.fortune-manager is then actually this:
+
+    ## My own fortunes
+    /home/manu/projects/fortunes-manu-it/manu-it manu-it
+    
+    # SaLUG-Fortunes!
+    /home/manu/projects/sfortunes/salug salug
+
+Of course, as in Unix tradition (and I obey Unix traditions) you can
+insert your personal comments by beginning lines with the '#'
+character.
+Fortune::Manager automagically skips blank lines, of course.
+
 
 =head1 SUBROUTINES/METHODS
 
@@ -68,14 +85,13 @@ probably extend it for the module to be used in bach-mode.
 
 =head1 AUTHOR
 
-Emanuele Santoro, <santoro at autistici.org>
+Emanuele Santoro <santoro at autistici dot org> - L<http://santoro.tk/>
+
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-fortune-manager at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Fortune-Manager>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
+Send ideas, bug reports and any other thing related to
+Fortune::Manager to <santoro at autistici dot org>
 
 
 
@@ -87,29 +103,6 @@ You can find documentation for this module with the perldoc command.
 
 
 You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Fortune-Manager>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Fortune-Manager>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Fortune-Manager>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Fortune-Manager/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 LICENSE AND COPYRIGHT
@@ -149,69 +142,5 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 =cut
-
-use feature 'say' ;
-use File::Temp ;
-
-our $RCFILE="$ENV{HOME}/.fortune-manager" ;
-
-## get the fortune name or exit showing some help
-my $fortune = shift @ARGV ;
-
-unless ($fortune) {
-    say "usage: $0 [fortune-file-name]" ; 
-    exit 2 ;
-}
-
-
-## load settings from ~/.fortune-manager
-
-#my $home = `echo \$HOME` ;
-#chdir $home ;
-
-unless (open SETTINGS, "< $RCFILE") {
-    say STDERR "could not read settings file\nReason: $!" ;
-    exit 2;
-}
-
-my @lines = <SETTINGS> ;
-
-my %database = ();
-
-foreach my $line (@lines) {
-    my @contents = split /\s/, $line ;
-    my $fullpath = shift @contents ;
-    my @aliases = @contents ;
-
-    unless (@aliases) {
-	say STDERR "Warning: $RCFILE contains a fortune file withoutany alias" ;
-	exit 2 ;
-    }
-
-    foreach my $alias (@aliases) {
-	$database{$alias} = $fullpath ;
-    }
-}
-
-
-#use Data::Dumper ; 
-#say Dumper %database ;
-
-#now check if there's a fortune with the name specified by the command line:
-unless (exists $database{$fortune} ) {
-    say STDERR "There's no fortune file aliased as $fortune in the config file, sorry," ;
-    exit 2 ;
-}
-
-## read the new fortune to a temporary file
-my $tmpfh = File::Temp->new(SUFFIX=>".tmp") ;
-system join " ", ($ENV{EDITOR},$tmpfh->filename) ;
-
-my $fortune_text = do {local $/; <$tmpfh>} ;
-
-open STRFILE, ">> $database{$fortune}" or die $! ;
-
-say STRFILE "\n%\n" ;
-print STRFILE $fortune_text ;
 
 1; # End of Fortune::Manager

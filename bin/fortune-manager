@@ -1,5 +1,6 @@
 #! /usr/bin/env perl
-use strict;
+
+use strict ;
 
 =head1 NAME
 
@@ -14,7 +15,7 @@ to my own collection of fortunes.
 
 So i decided to create my own application to add fortunes
 
-x=cut
+=cut
 
 our $VERSION = '0.01';
 
@@ -156,7 +157,7 @@ our $RCFILE="$ENV{HOME}/.fortune-manager" ;
 my $fortune = shift @ARGV ;
 
 unless ($fortune) {
-    say "usage: $0 [fortune-alias-name]" ; 
+    say "usage: $0 [fortune-file-name]" ; 
     exit 2 ;
 }
 
@@ -176,13 +177,21 @@ my @lines = <SETTINGS> ;
 my %database = ();
 
 foreach my $line (@lines) {
+    chomp $line ;
+    
+    ## ignore comment lines
+    next if $line =~ /^\s?#/ ;
+
+    ## ignore blank lines 
+    next if $line =~ /^\s*$/ ;
+
     my @contents = split /\s/, $line ;
     my $fullpath = shift @contents ;
     my @aliases = @contents ;
 
     unless (@aliases) {
 	say STDERR "Warning: $RCFILE contains a fortune file withoutany alias" ;
-	exit 2 ;
+	next ; 
     }
 
     foreach my $alias (@aliases) {
@@ -208,7 +217,11 @@ my $fortune_text = do {local $/; <$tmpfh>} ;
 
 open STRFILE, ">> $database{$fortune}" or die $! ;
 
+## skip blank fortunes..
+unless $frotune_text say STDERR "blank fortune, not adding..." ;
+exit 0 unless $fortune_text ;
+
 say STRFILE "\n%\n" ;
 print STRFILE $fortune_text ;
 
-1; # End of Fortune::Manager
+0; # End of Fortune::Manager
