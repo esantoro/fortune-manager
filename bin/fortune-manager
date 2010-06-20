@@ -223,5 +223,3 @@ exit 0 unless $fortune_text ;
 
 say STRFILE "\n%\n" ;
 print STRFILE $fortune_text ;
-
-0; # End of Fortune::Manager
