@@ -16,4 +16,5 @@ WriteMakefile(
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Fortune-Manager-*' },
+    EXE_FILES           => ['bin/fortune-manager'],
 );
