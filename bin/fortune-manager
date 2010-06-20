@@ -1,6 +1,5 @@
-#use warnings;
+#! /usr/bin/env perl
 use strict;
-#use diagnostics ;
 
 =head1 NAME
 
@@ -15,7 +14,7 @@ to my own collection of fortunes.
 
 So i decided to create my own application to add fortunes
 
-=cut
+x=cut
 
 our $VERSION = '0.01';
 
@@ -157,7 +156,7 @@ our $RCFILE="$ENV{HOME}/.fortune-manager" ;
 my $fortune = shift @ARGV ;
 
 unless ($fortune) {
-    say "usage: $0 [fortune-file-name]" ; 
+    say "usage: $0 [fortune-alias-name]" ; 
     exit 2 ;
 }
 
