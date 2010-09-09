@@ -72,7 +72,7 @@ my $fortune_text = do {local $/; <$tmpfh>} ;
 open STRFILE, ">> $database{$fortune}" or die $! ;
 
 ## skip blank fortunes..
-unless $frotune_text say STDERR "blank fortune, not adding..." ;
+say STDERR "blank fortune, not adding..." unless $fortune_text ;
 exit 0 unless $fortune_text ;
 
 say STRFILE "\n%\n" ;
